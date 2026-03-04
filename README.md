@@ -1,7 +1,3 @@
----
-description: Documentation for IRCTC Zap Chrome Extension
----
-
 # IRCTC Zap
 
 An automated Google Chrome Extension built to streamline and dramatically speed up the booking process on the official IRCTC web portal, particularly during the high-demand Tatkal reservation window. 
