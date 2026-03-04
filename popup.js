@@ -525,11 +525,11 @@ function modifyUserData() {
 function loadUserData() {
   chrome.storage.local.get(null, (loadData) => {
     if (chrome.runtime.lastError) {
-      alert("Error loading data: " + chrome.runtime.lastError.message);
+      showToast("Error loading data: " + chrome.runtime.lastError.message, "error");
       return;
     }
     if (!loadData || Object.keys(loadData).length === 0) {
-      alert("No saved data found!");
+      showToast("No saved data found!", "error");
       console.log("No saved data found");
       return;
     }
@@ -646,10 +646,10 @@ function loadUserData() {
       }
 
       finalData = loadData;
-      alert("Data loaded successfully!");
+      showToast("Data loaded successfully!", "success");
       console.log("Data loaded successfully", finalData);
     } catch (e) {
-      alert("Error loading data: " + e.message);
+      showToast("Error loading data: " + e.message, "error");
       console.error(e);
     }
   });
@@ -721,25 +721,25 @@ function saveForm() {
       const dataToSave = mergeData(savedData || {}, finalData);
       chrome.storage.local.set(dataToSave, () => {
         if (chrome.runtime.lastError) {
-          alert("Error saving data: " + chrome.runtime.lastError.message);
+          showToast("Error saving data: " + chrome.runtime.lastError.message, "error");
         } else {
           finalData = dataToSave;
-          alert("Data saved successfully!");
+          showToast("Data saved successfully!", "success");
           console.log("Data saved", finalData);
         }
       });
     });
   } catch (e) {
-    alert("Error saving data: " + e.message);
+    showToast("Error saving data: " + e.message, "error");
     console.error(e);
   }
 }
 function clearData() {
   chrome.storage.local.clear(() => {
     if (chrome.runtime.lastError) {
-      alert("Error clearing data: " + chrome.runtime.lastError.message);
+      showToast("Error clearing data: " + chrome.runtime.lastError.message, "error");
     } else {
-      alert("Data cleared successfully!");
+      showToast("Data cleared successfully!", "success");
     }
   });
 }
@@ -769,6 +769,7 @@ function startScript() {
     getMsg("activate_script", finalData),
     (response) => {
       console.log(response, "activate_script response");
+      showToast("Connected to IRCTC tab!", "success");
     }
   );
 }
@@ -790,3 +791,32 @@ document.getElementById('toggle-password').addEventListener('click', function ()
     eyeClosed.style.display = 'none';
   }
 });
+
+// Toast Notification System
+function showToast(message, type = "success") {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.className = `toast-message toast-${type}`;
+
+  const checkIcon = `<svg class="toast-icon" viewBox="0 0 52 52"><circle class="toast-circle" cx="26" cy="26" r="25" /><path class="toast-check" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>`;
+  const crossIcon = `<svg class="toast-icon" viewBox="0 0 52 52"><circle class="toast-circle" cx="26" cy="26" r="25" /><path class="toast-cross" d="M16 16 36 36 M36 16 16 36"/></svg>`;
+  const infoIcon = `<svg class="toast-icon" viewBox="0 0 52 52"><circle class="toast-circle" cx="26" cy="26" r="25" /><path class="toast-info-line" d="M26 22v15 M26 14h.01"/></svg>`;
+
+  let iconHtml = type === "success" ? checkIcon : type === "error" ? crossIcon : infoIcon;
+  toast.innerHTML = `${iconHtml}<span class="toast-text">${message}</span>`;
+
+  container.appendChild(toast);
+
+  // Slide in and fade up effect
+  requestAnimationFrame(() => {
+    toast.classList.add("show");
+  });
+
+  // Remove after 3 seconds
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
