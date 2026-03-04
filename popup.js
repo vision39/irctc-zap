@@ -138,40 +138,40 @@ window.addEventListener("load", () => {
     .addEventListener("change", setTrainNumber);
   for (let i = 0; i < 4; i++) {
     document
-      .querySelector("#passenger-name-1")
+      .querySelector(`#passenger-name-${i + 1}`)
       .addEventListener("change", (e) =>
         setPassengerDetails(e, i, "passenger")
       );
     document
-      .querySelector("#age-1")
+      .querySelector(`#age-${i + 1}`)
       .addEventListener("change", (e) =>
         setPassengerDetails(e, i, "passenger")
       );
     document
-      .querySelector("#passenger-gender-1")
+      .querySelector(`#passenger-gender-${i + 1}`)
       .addEventListener("change", (e) =>
         setPassengerDetails(e, i, "passenger")
       );
     document
-      .querySelector("#passenger-berth-1")
+      .querySelector(`#passenger-berth-${i + 1}`)
       .addEventListener("change", (e) =>
         setPassengerDetails(e, i, "passenger")
       );
     document
-      .querySelector("#passenger-nationality-1")
+      .querySelector(`#passenger-nationality-${i + 1}`)
       .addEventListener("change", (e) =>
         setPassengerDetails(e, i, "passenger")
       );
   }
   for (let i = 0; i < 2; i++) {
     document
-      .querySelector("#infant-name-1")
+      .querySelector(`#infant-name-${i + 1}`)
       .addEventListener("change", (e) => setPassengerDetails(e, i, "infant"));
     document
-      .querySelector("#age-1")
+      .querySelector(`#infant-age-${i + 1}`)
       .addEventListener("change", (e) => setPassengerDetails(e, i, "infant"));
     document
-      .querySelector("#infant-gender-1")
+      .querySelector(`#infant-gender-${i + 1}`)
       .addEventListener("change", (e) => setPassengerDetails(e, i, "infant"));
   }
 
@@ -709,6 +709,42 @@ function readCurrentFormData() {
   if (journeyDate) {
     if (!finalData["journey_details"]) finalData["journey_details"] = {};
     finalData["journey_details"]["date"] = journeyDate;
+  }
+
+  // Read passenger details actively
+  for (let i = 0; i < 4; i++) {
+    const nameStr = document.querySelector(`#passenger-name-${i + 1}`)?.value;
+    const ageStr = document.querySelector(`#age-${i + 1}`)?.value;
+    if (nameStr || ageStr) {
+      if (!finalData["passenger_details"]) finalData["passenger_details"] = [];
+      if (!finalData["passenger_details"][i]) finalData["passenger_details"][i] = {};
+      finalData["passenger_details"][i]["name"] = nameStr;
+      finalData["passenger_details"][i]["age"] = ageStr;
+
+      const gender = document.querySelector(`#passenger-gender-${i + 1}`)?.value;
+      if (gender) finalData["passenger_details"][i]["gender"] = gender;
+
+      const berth = document.querySelector(`#passenger-berth-${i + 1}`)?.value;
+      if (berth) finalData["passenger_details"][i]["berth"] = berth;
+
+      const nationality = document.querySelector(`#passenger-nationality-${i + 1}`)?.value;
+      if (nationality) finalData["passenger_details"][i]["nationality"] = nationality;
+    }
+  }
+
+  // Read infant details actively
+  for (let i = 0; i < 2; i++) {
+    const nameStr = document.querySelector(`#infant-name-${i + 1}`)?.value;
+    const ageStr = document.querySelector(`#infant-age-${i + 1}`)?.value;
+    if (nameStr || ageStr) {
+      if (!finalData["infant_details"]) finalData["infant_details"] = [];
+      if (!finalData["infant_details"][i]) finalData["infant_details"][i] = {};
+      finalData["infant_details"][i]["name"] = nameStr;
+      finalData["infant_details"][i]["age"] = ageStr;
+
+      const gender = document.querySelector(`#infant-gender-${i + 1}`)?.value;
+      if (gender) finalData["infant_details"][i]["gender"] = gender;
+    }
   }
 }
 

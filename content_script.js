@@ -313,6 +313,74 @@ async function dropdownSelect(dropdownContainer, label) {
   }
 }
 
+// Helper: Select a date in PrimeNG p-calendar by clicking the date picker popup
+async function calendarSelect(calendarContainer, targetDateStr) {
+  // targetDateStr expects "YYYY-MM-DD"
+  if (!calendarContainer || !targetDateStr) return false;
+
+  const [targetYear, targetMonth, targetDay] = targetDateStr.split("-").map(Number);
+  const inputEl = calendarContainer.querySelector("input") || calendarContainer;
+
+  // 1. Open the popup
+  inputEl.click();
+  inputEl.focus();
+  await sleep(300);
+
+  // 2. Find the popup overlay (.ui-datepicker)
+  let datepicker = calendarContainer.querySelector(".ui-datepicker");
+  if (!datepicker) {
+    datepicker = document.querySelector("body > .ui-datepicker");
+  }
+
+  if (!datepicker) {
+    console.warn("[IRCTC Autofill] Datepicker popup not found");
+    return false;
+  }
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const expectedMonthName = monthNames[targetMonth - 1];
+
+  // 3. Navigate to correct month/year
+  for (let i = 0; i < 12; i++) {
+    const titleMonthEl = datepicker.querySelector(".ui-datepicker-month");
+    const titleYearEl = datepicker.querySelector(".ui-datepicker-year");
+
+    if (!titleMonthEl || !titleYearEl) break;
+
+    const currentMonth = titleMonthEl.innerText.trim();
+    const currentYear = parseInt(titleYearEl.innerText.trim(), 10);
+
+    if (currentMonth.toLowerCase() === expectedMonthName.toLowerCase() && currentYear === targetYear) {
+      break; // Found correct month/year
+    }
+
+    // Advance to next month
+    const nextBtn = datepicker.querySelector(".ui-datepicker-next");
+    if (nextBtn && !nextBtn.classList.contains("ui-state-disabled")) {
+      nextBtn.click();
+      await sleep(200);
+    } else {
+      break;
+    }
+  }
+
+  // 4. Click the exact day
+  const dayLinks = [...datepicker.querySelectorAll("table.ui-datepicker-calendar tbody td:not(.ui-state-disabled) a")];
+  const dayToClick = dayLinks.find(a => parseInt(a.innerText.trim(), 10) === targetDay);
+
+  if (dayToClick) {
+    dayToClick.click();
+    console.log(`[IRCTC Autofill] Selected date from calendar: ${targetDay} ${expectedMonthName} ${targetYear}`);
+    await sleep(200);
+    return true;
+  } else {
+    console.warn(`[IRCTC Autofill] Day ${targetDay} not found or disabled in calendar`);
+    // Close popup
+    document.body.click();
+    return false;
+  }
+}
+
 async function loadJourneyDetails() {
   statusUpdate("filling_journey_details");
   const form = await waitForElement("app-jp-input form");
@@ -371,25 +439,30 @@ async function loadJourneyDetails() {
 
   // 3. Date
   fillTasks.push((async () => {
-    const dateInputField = await waitForElement("span.ui-calendar input", form, 5000);
+    let dateInputField = await waitForElement("p-calendar#jDate", form, 5000);
     if (!dateInputField) {
-      const fallback = await waitForElement("#jDate > span > input, #jDate input", form, 3000);
-      if (fallback && user_data["journey_details"]?.["date"]) {
-        const formattedDate = user_data["journey_details"]["date"].split("-").reverse().join("/");
-        setInputValue(fallback, formattedDate);
+      dateInputField = await waitForElement("span.ui-calendar", form, 3000);
+    }
+
+    // We pass the calendar container itself, and `user_data["journey_details"]["date"]` is "YYYY-MM-DD"
+    if (dateInputField && user_data["journey_details"]?.["date"]) {
+      console.log(`[IRCTC Autofill] Trying calendar click for Date: ${user_data["journey_details"]["date"]}`);
+      const success = await calendarSelect(dateInputField, user_data["journey_details"]["date"]);
+
+      // Fallback if calendar click fails for some reason
+      if (!success) {
+        console.warn("[IRCTC Autofill] Calendar click failed, trying manual text input fallback");
+        const fallbackInput = dateInputField.querySelector("input") || await waitForElement("#jDate input", form, 1000);
+        if (fallbackInput) {
+          const formattedDate = user_data["journey_details"]["date"].split("-").reverse().join("/");
+          setNativeValue(fallbackInput, formattedDate);
+          fallbackInput.dispatchEvent(new Event("input", { bubbles: true }));
+          fallbackInput.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, key: "Enter" }));
+          fallbackInput.dispatchEvent(new Event("change", { bubbles: true }));
+          fallbackInput.dispatchEvent(new Event("blur", { bubbles: true }));
+          console.log(`[IRCTC Autofill] Fallback date set to: ${formattedDate}`);
+        }
       }
-    } else if (user_data["journey_details"]?.["date"]) {
-      const formattedDate = user_data["journey_details"]["date"].split("-").reverse().join("/");
-      dateInputField.focus();
-      dateInputField.click();
-      await sleep(200);
-      setNativeValue(dateInputField, formattedDate);
-      dateInputField.dispatchEvent(new Event("input", { bubbles: true }));
-      dateInputField.dispatchEvent(new Event("change", { bubbles: true }));
-      dateInputField.dispatchEvent(new Event("blur", { bubbles: true }));
-      await sleep(200);
-      form.click();
-      console.log(`[IRCTC Autofill] Date set to: ${formattedDate}`);
     }
   })());
 
