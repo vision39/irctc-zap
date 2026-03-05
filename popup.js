@@ -1,3 +1,14 @@
+// === Tab Navigation ===
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+    btn.classList.add("active");
+    const target = btn.getAttribute("data-tab");
+    document.querySelector(`.tab-panel[data-tab="${target}"]`).classList.add("active");
+  });
+});
+
 let finalData = {
   irctc_credentials: {},
   journey_details: {},
@@ -109,6 +120,14 @@ window.addEventListener("load", () => {
     return `<option class="dropdown-list-item" value="${q.value}" data-label="${q.label}" data-index="${i}" data-age="${q.value}"><span>${q.label}</span></li>`;
   });
 
+  // Set the minimum selected date to today for journey-date
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const minDate = `${yyyy}-${mm}-${dd}`;
+  document.querySelector("#journey-date").setAttribute("min", minDate);
+
   document
     .querySelector("#irctc-login")
     .addEventListener("change", setIRCTCUsername);
@@ -133,6 +152,12 @@ window.addEventListener("load", () => {
   document
     .querySelector("#quota-input")
     .addEventListener("keyup", journeyQuotaFilter);
+
+  makeDropdownInteractive("from-station-input", "from-station-list");
+  makeDropdownInteractive("destination-station-input", "destination-station-list");
+  makeDropdownInteractive("journey-class-input", "journey-class-list");
+  makeDropdownInteractive("quota-input", "quota-list");
+
   document
     .querySelector("#train-no")
     .addEventListener("change", setTrainNumber);
@@ -396,9 +421,9 @@ function setFromStation(e) {
     english_label: e.target.dataset["englishLabel"],
     station_code: e.target.dataset["stationCode"],
   };
-  document.querySelector(
-    "#from-station-input"
-  ).value = `${e.target.dataset["englishLabel"]} - ${e.target.dataset["stationCode"]}`;
+  const input = document.querySelector("#from-station-input");
+  input.value = `${e.target.dataset["englishLabel"]} - ${e.target.dataset["stationCode"]}`;
+  input.blur();
 }
 function setDestinationStation(e) {
   finalData["journey_details"]["destination"] = {
@@ -406,26 +431,28 @@ function setDestinationStation(e) {
     english_label: e.target.dataset["englishLabel"],
     station_code: e.target.dataset["stationCode"],
   };
-  document.querySelector(
-    "#destination-station-input"
-  ).value = `${e.target.dataset["englishLabel"]} - ${e.target.dataset["stationCode"]}`;
+  const input = document.querySelector("#destination-station-input");
+  input.value = `${e.target.dataset["englishLabel"]} - ${e.target.dataset["stationCode"]}`;
+  input.blur();
 }
 function setJourneyClass(e) {
   finalData["journey_details"]["class"] = {
     label: e.target.dataset["label"],
     value: e.target.dataset["class"],
   };
-  document.querySelector(
-    "#journey-class-input"
-  ).value = `${e.target.dataset["label"]}`;
+  const input = document.querySelector("#journey-class-input");
+  input.value = `${e.target.dataset["label"]}`;
   setBerthOptions(e.target.dataset["class"]);
+  input.blur();
 }
 function setQuota(e) {
   finalData["journey_details"]["quota"] = {
     label: e.target.dataset["label"],
     value: e.target.dataset["quota"],
   };
-  document.querySelector("#quota-input").value = `${e.target.dataset["label"]}`;
+  const input = document.querySelector("#quota-input");
+  input.value = `${e.target.dataset["label"]}`;
+  input.blur();
 }
 
 function journeyDateChanged(e) {
@@ -827,6 +854,52 @@ document.getElementById('toggle-password').addEventListener('click', function ()
     eyeClosed.style.display = 'none';
   }
 });
+
+// Dropdown Keyboard Navigation
+function makeDropdownInteractive(inputId, listId) {
+  const input = document.getElementById(inputId);
+  const list = document.getElementById(listId);
+  let currentFocus = -1;
+
+  input.addEventListener("keydown", function (e) {
+    let items = list.querySelectorAll("li");
+    let visibleItems = Array.from(items).filter(item => item.style.display !== "none");
+
+    if (e.key === "ArrowDown") {
+      currentFocus++;
+      addActive(visibleItems);
+      e.preventDefault();
+    } else if (e.key === "ArrowUp") {
+      currentFocus--;
+      addActive(visibleItems);
+      e.preventDefault();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (currentFocus > -1 && visibleItems[currentFocus]) {
+        visibleItems[currentFocus].click();
+      }
+    }
+  });
+
+  input.addEventListener("input", function () {
+    currentFocus = -1;
+  });
+
+  function addActive(x) {
+    if (!x || x.length === 0) return;
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = (x.length - 1);
+    x[currentFocus].classList.add("active-item");
+    x[currentFocus].scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
+
+  function removeActive(x) {
+    for (let i = 0; i < x.length; i++) {
+      x[i].classList.remove("active-item");
+    }
+  }
+}
 
 // Toast Notification System
 function showToast(message, type = "success") {

@@ -49,7 +49,7 @@ An automated Google Chrome Extension built to streamline and dramatically speed 
 
 ## 🚦 Usage Guide
 
-1. Click on the IRCTC Autofill icon in your Chrome toolbar.
+1. Click on the **IRCTC Zap** icon in your Chrome toolbar.
 2. Carefully fill out the required properties:
     - **IRCTC Credentials**: Provide your username/password so the script can auto-login if prompted.
     - **Journey Details**: Origin, Destination, Date (YYYY-MM-DD), Class, and Quota.

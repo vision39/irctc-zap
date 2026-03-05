@@ -1,14 +1,13 @@
 {
-"update_url": "https://clients2.google.com/service/update2/crx",
-
-  "name": "IRCTC Tatkal Automation Tool",
-  "description": "IRCTC Tatkal Automation Tool helps you book IRCTC tatkal tickets at an ease. It autofills and submits all data during tatkal booking",
-  "version": "0.1.0",
+  "update_url": "https://clients2.google.com/service/update2/crx",
+  "name": "IRCTC Zap",
+  "description": "IRCTC Zap helps you book IRCTC tatkal tickets with ease. It autofills and submits all data instantly during tatkal booking.",
+  "version": "0.1.1",
   "manifest_version": 3,
   "action": {
     "default_popup": "popup.html",
     "default_icon": "irctc400.png",
-    "default_title": "IRCTC Auto fill"
+    "default_title": "IRCTC Zap"
   },
   "icons": {
     "16": "irctc16.png",
@@ -18,6 +17,12 @@
   "background": {
     "service_worker": "./background_script.js"
   },
-  "permissions": ["scripting", "tabs", "storage"],
-  "host_permissions": ["https://www.irctc.co.in/"]
+  "permissions": [
+    "scripting",
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.irctc.co.in/"
+  ]
 }
