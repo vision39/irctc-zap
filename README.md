@@ -1,4 +1,5 @@
 <img width="591" height="241" alt="banner" src="https://github.com/user-attachments/assets/379de61e-0273-472d-9f26-22004b95c42b" />
+
 # IRCTC Zap
 
 An automated Google Chrome Extension built to streamline and dramatically speed up the booking process on the official IRCTC web portal, particularly during the high-demand Tatkal reservation window. 
